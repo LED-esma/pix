@@ -58,4 +58,5 @@ targets:
         OTHER_CODE_SIGN_FLAGS: "--timestamp"
         COMBINE_HIDPI_IMAGES: YES
         CODE_SIGN_ENTITLEMENTS: Sources/Pix/Pix.entitlements
+        CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO  # no debugging entitlement (get-task-allow): Apple won't notarize it
         OTHER_LDFLAGS: "-weak_framework FoundationModels"  # the built-in model is macOS 26+; Pix still opens on 15

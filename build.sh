@@ -28,6 +28,7 @@ xcodebuild -project Pix.xcodeproj -scheme Pix -configuration Release \
 rm -rf dist && mkdir -p dist
 ditto build/Build/Products/Release/Pix.app dist/Pix.app
 codesign --verify --deep --strict dist/Pix.app
+codesign -d --entitlements :- dist/Pix.app 2>/dev/null | grep -q get-task-allow && { echo "Signed with the debugging entitlement (get-task-allow): Apple won't notarize it."; exit 1; }
 [ "$(lipo -archs dist/Pix.app/Contents/MacOS/Pix)" = "x86_64 arm64" ] || { echo "Not universal: $(lipo -archs dist/Pix.app/Contents/MacOS/Pix)"; exit 1; }
 
 dist/Pix.app/Contents/MacOS/Pix --selfcheck
