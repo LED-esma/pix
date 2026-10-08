@@ -1,0 +1,28 @@
+# Build output
+build/
+dist/
+Pix.xcodeproj/
+*.xcuserstate
+.DS_Store
+
+# Canvas libraries: downloaded by tools/fetch-plugins.sh (pinned versions).
+# Pix's own helpers (Plugins/core) and every plugin.json stay in git.
+Plugins/math/*.js
+Plugins/math/*.css
+Plugins/math/fonts/
+Plugins/flow/*.js
+Plugins/physics/*.js
+Plugins/3d/*.js
+Plugins/charts/*.js
+Plugins/python/*
+!Plugins/python/plugin.json
+Plugins/sim3d/*.js
+Plugins/core/anime.umd.min.js
+
+# Generated
+Sources/Pix/Resources/Pix.icns
+bench/results/
+bench/suite/
+bench/after/
+bench/runs/
+bench/screen.jpg

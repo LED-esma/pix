@@ -1,0 +1,14 @@
+{
+ "name": "physics",
+ "about": "Physics simulations in meters and seconds (Matter.js)",
+ "api": [
+  "Pix.physics(el, {bodies:[{shape:\"circle\"|\"box\", x,y, r|w,h, vx,vy, label, fixed, bounce}], gravity:9.8, width:20, height:10, springs:[{a,b,length,stiffness}], trace, vectors}) — y is up; shows time, speed, height; Pause/Replay"
+ ],
+ "scripts": [
+  "matter.min.js"
+ ],
+ "uses": [
+  "Pix.physics",
+  "Matter."
+ ]
+}

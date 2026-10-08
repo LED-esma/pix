@@ -1,0 +1,14 @@
+{
+ "name": "charts",
+ "about": "Bar, line, scatter, pie charts (Chart.js)",
+ "api": [
+  "Pix.chart(el, {type:\"bar\"|\"line\"|\"scatter\"|\"pie\", labels:[…], series:[{name, data:[…]}], title, x, y})"
+ ],
+ "scripts": [
+  "chart.umd.min.js"
+ ],
+ "uses": [
+  "Pix.chart",
+  "new Chart"
+ ]
+}

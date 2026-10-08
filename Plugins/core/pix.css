@@ -1,0 +1,43 @@
+/* Pix canvas theme. Follows the system's light/dark setting. */
+:root {
+  color-scheme: light dark;
+  --bg: #fbfbfd; --fg: #1d1d1f; --muted: #6e6e73; --line: rgba(0, 0, 0, .1); --card: rgba(0, 0, 0, .035);
+  --accent: #6346ed; --accent-2: #f2774b; --good: #21a06b; --blue: #2c70f2; --pink: #ff5c8c;
+  font: 14px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #1c1c1e; --fg: #f2f2f7; --muted: #98989f; --line: rgba(255, 255, 255, .12); --card: rgba(255, 255, 255, .05);
+          --accent: #8e7bff; --accent-2: #ff9a6b; --good: #3ccf8e; --blue: #5c9bff; --pink: #ff7aa2; }
+}
+html, body { margin: 0; background: var(--bg); color: var(--fg); }
+body { padding: 18px; }
+h1, h2, h3 { margin: 0 0 10px; font-weight: 650; }
+h1 { font-size: 20px; } h2 { font-size: 17px; } h3 { font-size: 15px; }
+p { margin: 0 0 10px; }
+.pix-box { border: 1px solid var(--line); border-radius: 14px; background: var(--card); padding: 14px; margin: 0 0 14px; }
+.pix-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.pix-muted { color: var(--muted); font-size: 12.5px; }
+.pix-btn { appearance: none; border: 1px solid var(--line); background: var(--bg); color: var(--fg); border-radius: 999px;
+           padding: 4px 12px; font: 500 12.5px -apple-system, sans-serif; cursor: pointer; }
+.pix-btn:hover { border-color: var(--accent); }
+.pix-btn.primary { background: var(--accent); border-color: var(--accent); color: white; }
+.pix-canvas { width: 100%; display: block; border-radius: 10px; touch-action: none; }
+.pix-step { display: grid; grid-template-columns: 26px 1fr; gap: 4px 10px; align-items: baseline; padding: 8px 10px;
+            border-radius: 10px; opacity: .18; transform: translateY(5px); transition: opacity .45s, transform .45s, background .3s; }
+.pix-step.on { opacity: 1; transform: none; }
+.pix-step.now { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.pix-step .n { color: var(--accent); font-weight: 700; font-size: 12px; }
+.pix-step .note { grid-column: 2; color: var(--muted); font-size: 12.5px; }
+.pix-slider { display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
+.pix-slider input { accent-color: var(--accent); }
+.pix-code { width: 100%; box-sizing: border-box; min-height: 110px; font: 12.5px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+            background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 10px; padding: 10px; resize: vertical; }
+.pix-out { font: 12.5px/1.5 ui-monospace, Menlo, monospace; white-space: pre-wrap; margin: 8px 0 0; color: var(--fg); }
+.pix-out.err { color: var(--pink); }
+.katex-display { margin: .3em 0; }
+
+/* Math in the same typeface as the words around it (system font, italic variables);
+   KaTeX keeps its own fonts only for big operators, delimiters and roots. */
+.katex { font-family: -apple-system, "SF Pro Text", sans-serif; font-size: 1em; }
+.katex .mathnormal, .katex .mathit, .katex .boldsymbol { font-family: -apple-system, "SF Pro Text", sans-serif; font-style: italic; }
+.katex .mathrm, .katex .textrm, .katex .mop, .katex .mord.text, .katex .mathbf { font-family: -apple-system, "SF Pro Text", sans-serif; }

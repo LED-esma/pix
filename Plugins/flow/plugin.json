@@ -1,0 +1,14 @@
+{
+ "name": "flow",
+ "about": "Flowcharts, mind maps, timelines (Mermaid syntax)",
+ "api": [
+  "Pix.flow(el, \"graph TD; A[Start]-->B{Choice}\")"
+ ],
+ "scripts": [
+  "mermaid.min.js"
+ ],
+ "uses": [
+  "Pix.flow",
+  "mermaid"
+ ]
+}

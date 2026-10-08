@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Reminders and Calendar, for Pix's built-in tools (hardened runtime needs this). -->
+	<key>com.apple.security.personal-information.calendars</key>
+	<true/>
+	<!-- Notes and Music, driven through AppleScript. -->
+	<key>com.apple.security.automation.apple-events</key>
+	<true/>
+	<!-- The microphone, for hold-to-talk (hardened runtime needs this). -->
+	<key>com.apple.security.device.audio-input</key>
+	<true/>
+</dict>
+</plist>

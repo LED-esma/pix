@@ -1,0 +1,19 @@
+{
+ "name": "math",
+ "about": "Typeset math and animated equation steps",
+ "api": [
+  "Pix.math(el, tex)",
+  "Pix.steps(el, [tex…], {notes:[…]}) — lines appear one by one, with Back/Next/Replay"
+ ],
+ "styles": [
+  "katex.min.css"
+ ],
+ "scripts": [
+  "katex.min.js"
+ ],
+ "uses": [
+  "Pix.math",
+  "Pix.steps",
+  "katex"
+ ]
+}

@@ -1,0 +1,10 @@
+{
+ "name": "sim3d",
+ "about": "3D physics simulations you can rotate (cannon-es + Three.js), z up, meters and seconds",
+ "api": [
+  "Pix.sim3d(el, {bodies:[{shape:\"sphere\"|\"box\"|\"cylinder\", size:[…], pos:[x,y,z], vel:[…], mass, bounce, color, label, fixed}], springs:[{a, b | anchor:[x,y,z], length, stiffness, rod}], gravity:9.8, seconds}) — Pause/Replay/Spin; shows time, speed, height; point at bodies by label"
+ ],
+ "uses": [
+  "Pix.sim3d"
+ ]
+}

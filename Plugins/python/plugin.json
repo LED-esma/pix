@@ -1,0 +1,14 @@
+{
+ "name": "python",
+ "about": "Run Python live (Pyodide); the user can edit and rerun",
+ "api": [
+  "Pix.python(el, code)"
+ ],
+ "scripts": [
+  "pyodide.js"
+ ],
+ "uses": [
+  "Pix.python",
+  "loadPyodide"
+ ]
+}

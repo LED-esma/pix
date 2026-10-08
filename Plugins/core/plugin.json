@@ -1,0 +1,20 @@
+{
+ "name": "core",
+ "about": "Always loaded: plots with sliders, circuits, runnable JavaScript, replay, animation (anime.js)",
+ "api": [
+  "Pix.plot(el, {fns:[\"x^2 - 2x + 3\", \"(f(1+h)-f(1))/h*(x-1)+f(1)\"], sliders:{h:[0.01,2,1.5]}, points:[[1,2,\"P\"]], x:[-1,4], labels:[\"f(x)\",\"secant\"]}) — later formulas can call f(…) and g(…) (the first two); slider variables work in any formula; draws itself in; drag, zoom, hover",
+  "Pix.circuit(el, {parts:[{type:\"battery\"|\"resistor\"|\"led\"|\"lamp\"|\"switch\"|\"capacitor\"|\"motor\", label}], current:true}) — one loop, animated current",
+  "Pix.js(el, code) — runnable JavaScript",
+  "Pix.replay(el, stage => {…}) — Replay button that reruns your own animation",
+  "anime.animate(targets, {…}) — anime.js v4 for custom animation",
+  "el is an element or CSS selector (made if missing); CSS vars: --fg --muted --accent --accent-2 --good --blue --pink --card --line; class pix-box for a card"
+ ],
+ "styles": [
+  "pix.css"
+ ],
+ "scripts": [
+  "anime.umd.min.js",
+  "pix.js"
+ ],
+ "uses": []
+}

@@ -1,0 +1,16 @@
+{
+ "name": "3d",
+ "about": "3D scenes and 3D graphs you can rotate (Three.js)",
+ "api": [
+  "Pix.plot3d(el, {fn:\"sin(x)*cos(y)\", x:[-3,3], y:[-3,3], curves:[{x:\"cos(t)\", y:\"sin(t)\", z:\"t/5\", t:[0,20]}], points:[[x,y,z,\"label\"]], sliders:{a:[min,max,start]}}) — z up, colored by height, rises in; drag to rotate, hover to read",
+  "Pix.scene3d(el, {objects:[{type:\"box\"|\"sphere\"|\"cylinder\"|\"cone\"|\"torus\", size:[…], pos:[x,y,z], rot:[deg…], color, label}], spin})"
+ ],
+ "importmap": {
+  "three": "three.module.js"
+ },
+ "uses": [
+  "Pix.scene3d",
+  "Pix.plot3d",
+  "three"
+ ]
+}

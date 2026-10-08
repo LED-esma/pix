@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>Pix</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIconFile</key>
+	<string>Pix</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>Pix</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.productivity</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>15.0</string>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Pix uses Notes and Music when you ask it to.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>Pix reads your calendar and adds the events you ask for.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Pix reads your calendar and adds the events you ask for.</string>
+	<key>NSHumanReadableCopyright</key>
+	<string></string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Pix hears you while you hold its shortcut.</string>
+	<key>NSRemindersFullAccessUsageDescription</key>
+	<string>Pix reads your reminders and adds the ones you ask for.</string>
+	<key>NSRemindersUsageDescription</key>
+	<string>Pix reads your reminders and adds the ones you ask for.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Pix turns what you say into a question, on this Mac when it can.</string>
+	<key>PixUpdateRepo</key>
+	<string>LED-esma/pix</string>
+</dict>
+</plist>
