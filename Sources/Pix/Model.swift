@@ -321,6 +321,8 @@ final class PixModel: ObservableObject {
     /// A newer Pix on GitHub Releases (Updater), and an install in progress.
     @Published var update: Updater.Release?
     @Published var updating = false
+    @Published var updateReady: String?   // downloaded and checked, waiting for a quiet moment
+    @Published var justUpdated: String?   // "Updated to Pix …", shown once after an update
     @Published var listening = false
     @Published var heard = ""
     /// Show Me: the step on the card while Pix waits for you to click what it ringed.

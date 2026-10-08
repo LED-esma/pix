@@ -964,6 +964,25 @@ enum SelfCheck {
                   && all.allSatisfy { !$0.cost.isEmpty && !$0.privacy.isEmpty && !$0.speed.isEmpty && !$0.bestAt.isEmpty }
                   && all[1].privacy == "Stays on this Mac" && all[0].privacy == "Sent to Anthropic")
         }
+        do {
+            // The update swap, for real in a temp folder: a good update replaces the app; a missing one leaves it alone.
+            let fm = FileManager.default, box = fm.temporaryDirectory.appendingPathComponent("pix-swap-\(UUID().uuidString.prefix(6))")
+            let target = box.appendingPathComponent("Pix.app"), staged = box.appendingPathComponent("work/Pix.app")
+            try? fm.createDirectory(at: target, withIntermediateDirectories: true)
+            try? fm.createDirectory(at: staged, withIntermediateDirectories: true)
+            try? "old".write(to: target.appendingPathComponent("v"), atomically: true, encoding: .utf8)
+            try? "new".write(to: staged.appendingPathComponent("v"), atomically: true, encoding: .utf8)
+            func run(_ s: String) { let p = Process(); p.executableURL = URL(fileURLWithPath: "/bin/sh"); p.arguments = ["-c", s]; try? p.run(); p.waitUntilExit() }
+            run(Updater.swapScript(staged: staged.path, target: target.path, pid: 999_999, work: box.appendingPathComponent("work").path, relaunch: false))
+            let swapped = (try? String(contentsOf: target.appendingPathComponent("v"), encoding: .utf8)) == "new"
+                && !fm.fileExists(atPath: target.path + ".old") && !fm.fileExists(atPath: box.appendingPathComponent("work").path)
+            run(Updater.swapScript(staged: box.appendingPathComponent("missing/Pix.app").path, target: target.path, pid: 999_999, work: "/nonexistent", relaunch: false))
+            let kept = (try? String(contentsOf: target.appendingPathComponent("v"), encoding: .utf8)) == "new"
+            check("updates swap in safely: the new app replaces the old, and a failed update leaves Pix in place",
+                  swapped && kept && Updater.newer("v0.1.2", than: "0.1.1") && !Updater.newer("0.1.1", than: "0.1.1")
+                  && Updater.notes("0.1.1")?.absoluteString == "https://github.com/LED-esma/pix/releases/tag/v0.1.1")
+            try? fm.removeItem(at: box)
+        }
         check("Auto sends doing to Claude and keeps quick questions local",
               Auto.needsDoer("turn on dark mode for me") && Auto.needsDoer("remind me to call mom at 6") && !Auto.needsDoer("what is a derivative"))
         check("a model can save a tool only when the user asked for one",

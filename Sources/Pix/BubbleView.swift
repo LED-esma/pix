@@ -107,6 +107,7 @@ private struct InputView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            UpdateNotice(model: model, controller: controller)
             TextField(Mode.placeholder, text: $model.goal, axis: .vertical)
                 .textFieldStyle(.plain)
                 .font(.system(size: 15))
@@ -346,6 +347,38 @@ private struct AIChoiceRow: View {
         var body: some View {
             Label(text, systemImage: symbol).font(.system(size: 10.5)).foregroundStyle(.secondary).labelStyle(.titleAndIcon).lineLimit(1).fixedSize()
         }
+    }
+}
+
+/// One quiet line at the top of the card about updates: "Updated to Pix 0.1.2" (once, with What's New),
+/// or, with automatic updates off, "Pix 0.1.2 is out" with Update.
+private struct UpdateNotice: View {
+    @ObservedObject var model: PixModel
+    let controller: PixController
+
+    var body: some View {
+        if let v = model.justUpdated {
+            row(symbol: "checkmark.seal", text: "Updated to Pix \(v)") {
+                if let url = Updater.notes(v) { Button("What's New") { NSWorkspace.shared.open(url); model.justUpdated = nil } }
+                CloseButton { model.justUpdated = nil }
+            }
+        } else if let u = model.update, !Updater.automatic || model.updateReady != nil {
+            row(symbol: "arrow.down.circle", text: model.updateReady != nil ? "Pix \(u.version) is ready" : "Pix \(u.version) is out") {
+                if model.updating { ProgressView().controlSize(.small) }
+                else { Button(model.updateReady != nil ? "Restart to Update" : "Update") { controller.updateNow() } }
+            }
+        }
+    }
+
+    private func row<Trailing: View>(symbol: String, text: String, @ViewBuilder trailing: () -> Trailing) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: symbol).font(.system(size: 12)).foregroundStyle(Color.accentColor)
+            Text(text).font(.system(size: 12, weight: .medium))
+            Spacer()
+            trailing().controlSize(.small)
+        }
+        .padding(.horizontal, 10).padding(.vertical, 6)
+        .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.accentColor.opacity(0.1)))
     }
 }
 
@@ -763,9 +796,14 @@ struct DoneView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             // The whole answer, formatted; the card grows to fit and only scrolls past the screen's height.
+            // Every change on the card undone: the answer ("the timer is running") no longer holds, so say so.
+            if !model.actions.isEmpty, model.actions.allSatisfy({ model.undone.contains($0.id) }) {
+                Label("Undone", systemImage: "arrow.uturn.backward").font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary)
+            }
             ScrollView {
                 MathText(text: done.gist, size: 13.5, rich: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .opacity(!model.actions.isEmpty && model.actions.allSatisfy({ model.undone.contains($0.id) }) ? 0.45 : 1)
             }
             .frame(maxHeight: max(320, (NSScreen.main?.visibleFrame.height ?? 900) - 200))
             .fixedSize(horizontal: false, vertical: true)

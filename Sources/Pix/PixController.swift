@@ -49,6 +49,7 @@ final class PixController {
     var settingsWindow: NSWindow?
     var stepCancel: (() -> Void)?  // ends a Show Me step that's waiting for your click
     var holdTimer: Timer?          // holding the shortcut past this starts listening
+    var updateTimer: Timer?        // the daily update check, while Pix runs
     var userContinue: (() -> Void)?  // the card's Continue, while Pix waits for you
     var spokenRun = false          // the question was spoken
     var wakeRun = false            // "Hey Pix" was heard and Pix is taking the question
@@ -96,7 +97,7 @@ final class PixController {
         startSchedules()
         Task { @MainActor in await Bridge.start() }  // so Pix's tools can reach its browser window
         Task { @MainActor in await Translator.start() }  // so OpenAI-style AIs work
-        Task { @MainActor in await Updater.check(model) }
+        startUpdateWatch()  // daily while running; installs quietly when idle
         if WakeWord.on { startWakeWord() }  // "Hey Pix", if turned on  // once a day; off until a release repo is set
 
         model.objectWillChange
@@ -105,7 +106,9 @@ final class PixController {
         NotificationCenter.default.publisher(for: NSWindow.didResignKeyNotification, object: bubble)
             .sink { [weak self] _ in
                 // Clicking away from the prompt tucks Pix back in. Typed text is kept.
-                guard let self, case .idle = self.model.phase, !self.roaming else { return }
+                // First-run steps (picking an AI, the welcome, adding an AI) stay put: losing them lost people.
+                guard let self, case .idle = self.model.phase, !self.roaming,
+                      !self.model.pickingAI, !self.model.welcome, !self.model.adding else { return }
                 self.closeBubble()
             }
             .store(in: &bag)
@@ -265,8 +268,8 @@ final class MenuTarget: NSObject {
     @objc func toggleAuto() { Auto.on.toggle() }
     @objc func update() {
         MainActor.assumeIsolated {
-            guard let c = controller, let r = c.model.update else { return }
-            Task { @MainActor in if let problem = await Updater.install(r, model: c.model) { c.fail(problem, fix: .none) } }
+            guard let c = controller, c.model.update != nil else { return }
+            c.updateNow()
         }
     }
     @objc func settings() { MainActor.assumeIsolated { controller?.showSettings() } }

@@ -68,6 +68,7 @@ private struct GeneralPane: View {
     @State private var login = SMAppService.mainApp.status == .enabled
     @State private var loginProblem = false
     @State private var updateProblem: String?
+    @State private var upToDate = false
 
     var body: some View {
         Form {
@@ -98,14 +99,18 @@ private struct GeneralPane: View {
                         Spacer()
                         if model.updating { ProgressView().controlSize(.small) }
                         else if let u = model.update {
-                            Button("Update to \(u.version)") {
-                                Task { @MainActor in if let problem = await Updater.install(u, model: model) { updateProblem = problem } }
+                            Button(model.updateReady != nil ? "Restart to Update" : "Update to \(u.version)") {
+                                if model.updateReady != nil { controller.updateNow() }
+                                else { Task { @MainActor in if let problem = await Updater.install(u, model: model) { updateProblem = problem } } }
                             }
                         } else {
-                            Button("Check for Updates") { Task { @MainActor in await Updater.check(model, force: true) } }
+                            Button("Check for Updates") { Task { @MainActor in await Updater.check(model, force: true); upToDate = model.update == nil } }
                         }
                     }
                     if let p = updateProblem { Text(p).font(.caption).foregroundStyle(.secondary) }
+                    else if upToDate { Text("Pix is up to date").font(.caption).foregroundStyle(.secondary) }
+                    Toggle("Update Automatically", isOn: Binding(get: { Updater.automatic }, set: { Updater.automatic = $0; model.objectWillChange.send(); controller.updateTick() }))
+                    if let url = Updater.notes(Updater.current) { Link("What's New in Pix \(Updater.current)", destination: url).font(.callout) }
                 }
             }
             Section("Memory") {

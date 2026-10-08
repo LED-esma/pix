@@ -97,7 +97,6 @@ extension PixController {
             }
             item.submenu = sub
         }
-        m.addItem(withTitle: "Permissions", action: #selector(MenuTarget.permissions), keyEquivalent: "")
         let hiding = m.addItem(withTitle: "Hiding", action: nil, keyEquivalent: "")
         let hm = NSMenu()
         for style in HideStyle.allCases {
@@ -116,16 +115,14 @@ extension PixController {
         }
         hiding.submenu = hm
         if let u = model.update {
-            m.addItem(withTitle: model.updating ? "Updating…" : "Update to Pix \(u.version)", action: #selector(MenuTarget.update), keyEquivalent: "")
+            let title = model.updating ? "Getting Pix \(u.version) Ready…" : model.updateReady != nil ? "Restart to Update to Pix \(u.version)" : "Update to Pix \(u.version)"
+            m.addItem(withTitle: title, action: #selector(MenuTarget.update), keyEquivalent: "")
         }
         let auto = m.addItem(withTitle: "Auto Mode", action: #selector(MenuTarget.toggleAuto), keyEquivalent: "")
         auto.state = Auto.on ? .on : .off
         m.addItem(withTitle: "Settings…", action: #selector(MenuTarget.settings), keyEquivalent: ",")
         if Feedback.available { m.addItem(withTitle: "Send Feedback…", action: #selector(MenuTarget.feedback), keyEquivalent: "") }
-        let login = m.addItem(withTitle: "Open at Login", action: #selector(MenuTarget.toggleLogin), keyEquivalent: "")
-        login.state = SMAppService.mainApp.status == .enabled ? .on : .off
         m.addItem(.separator())
-        m.addItem(withTitle: "Hide Pix", action: #selector(MenuTarget.hide), keyEquivalent: "")
         m.addItem(withTitle: "Quit Pix", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "")
         for item in m.items where item.action != #selector(NSApplication.terminate(_:)) {
             item.target = MenuTarget.shared

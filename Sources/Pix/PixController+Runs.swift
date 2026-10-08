@@ -127,6 +127,7 @@ extension PixController {
         let goal = model.goal.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !goal.isEmpty else { return }
         model.cameFrom = nil
+        model.justUpdated = nil  // "Updated to …" has been seen
         tried = []
         if model.welcome { Welcome.save(name: model.nameDraft) }
         model.welcome = false

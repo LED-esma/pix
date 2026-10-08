@@ -70,40 +70,132 @@ enum Updater {
         return out.split(separator: "\n").first { $0.hasPrefix("TeamIdentifier=") }.map { String($0.dropFirst("TeamIdentifier=".count)) }
     }
 
-    /// Download, check the signature, swap, relaunch. Returns what went wrong, or nil (Pix quits to relaunch).
-    static func install(_ r: Release, model: PixModel) async -> String? {
+    /// Updates install by themselves (downloaded and checked in the background, swapped in while Pix is
+    /// idle). Off in Settings: Pix then says a new version is out and waits for Update.
+    nonisolated static var automatic: Bool {
+        get { UserDefaults.standard.object(forKey: "update.auto") as? Bool ?? true }
+        set { UserDefaults.standard.set(newValue, forKey: "update.auto") }
+    }
+
+    nonisolated static func notes(_ version: String) -> URL? {
+        repo.isEmpty ? nil : URL(string: "https://github.com/\(repo)/releases/tag/v\(version)")
+    }
+
+    /// Downloads the release and checks it's signed by the same developer as this Pix. Returns the
+    /// ready-to-swap app, or what went wrong. Kept in ~/Pix/work so a ready update survives a relaunch.
+    static func prepare(_ r: Release, model: PixModel) async -> Result<String, UpdateProblem> {
         model.updating = true
         defer { model.updating = false }
-        let work = FileManager.default.temporaryDirectory.appendingPathComponent("pix-update-\(UUID().uuidString)")
-        try? FileManager.default.createDirectory(at: work, withIntermediateDirectories: true)
+        let fm = FileManager.default
+        let work = PixPaths.home.appendingPathComponent("work/update-\(r.version)")
+        let staged = work.appendingPathComponent("Pix.app").path
+        if fm.fileExists(atPath: staged), let mine = team(of: Bundle.main.bundlePath), team(of: staged) == mine { return .success(staged) }
+        try? fm.removeItem(at: work)
+        try? fm.createDirectory(at: work, withIntermediateDirectories: true)
         guard let (tmp, resp) = try? await URLSession.shared.download(from: r.dmg), (resp as? HTTPURLResponse)?.statusCode == 200 else {
-            return "The update didn't download."
+            return .failure(.init("The update didn't download."))
         }
         let dmg = work.appendingPathComponent("Pix.dmg")
-        try? FileManager.default.moveItem(at: tmp, to: dmg)
+        try? fm.moveItem(at: tmp, to: dmg)
         let mount = work.appendingPathComponent("mount").path
         guard BuiltIn.run("/usr/bin/hdiutil", ["attach", dmg.path, "-nobrowse", "-readonly", "-mountpoint", mount], timeout: 120) != nil else {
-            return "The update wouldn't open."
+            return .failure(.init("The update wouldn't open."))
         }
-        let staged = work.appendingPathComponent("Pix.app").path
         _ = BuiltIn.run("/usr/bin/ditto", ["\(mount)/Pix.app", staged], timeout: 300)
         _ = BuiltIn.run("/usr/bin/hdiutil", ["detach", mount, "-quiet"], timeout: 60)
+        try? fm.removeItem(at: dmg)
         // Only an app signed by the same developer as this one replaces it.
         guard let mine = team(of: Bundle.main.bundlePath), let theirs = team(of: staged), mine == theirs else {
-            return "The update isn't signed by Pix's developer, so it wasn't installed."
+            try? fm.removeItem(at: work)
+            return .failure(.init("The update isn't signed by Pix's developer, so it wasn't installed."))
         }
-        let target = Bundle.main.bundlePath
-        let pid = ProcessInfo.processInfo.processIdentifier
-        let script = """
-        while kill -0 \(pid) 2>/dev/null; do sleep 0.2; done
-        /usr/bin/ditto "\(staged)" "\(target).new" && rm -rf "\(target)" && mv "\(target).new" "\(target)" && open "\(target)"
-        rm -rf "\(work.path)"
+        return .success(staged)
+    }
+
+    /// The swap, run after Pix quits: the old app is kept until the new one is in place, and comes back
+    /// if anything fails, so a failed update never leaves you without Pix.
+    nonisolated static func swapScript(staged: String, target: String, pid: Int32, work: String, relaunch: Bool = true) -> String {
         """
+        while kill -0 \(pid) 2>/dev/null; do sleep 0.2; done
+        T="\(target)"
+        rm -rf "$T.new" "$T.old"
+        if /usr/bin/ditto "\(staged)" "$T.new" && mv "$T" "$T.old" && mv "$T.new" "$T"; then rm -rf "$T.old" "\(work)"
+        else [ -d "$T.old" ] && [ ! -d "$T" ] && mv "$T.old" "$T"; rm -rf "$T.new"; fi
+        \(relaunch ? "open \"$T\"" : "")
+        """
+    }
+
+    /// Quits and swaps in the ready update; the new Pix says "Updated to …" once.
+    static func apply(staged: String, version: String) {
+        UserDefaults.standard.set(version, forKey: "update.installed")
         let p = Process()
         p.executableURL = URL(fileURLWithPath: "/bin/sh")
-        p.arguments = ["-c", script]
-        guard (try? p.run()) != nil else { return "The update couldn't start." }
+        p.arguments = ["-c", swapScript(staged: staged, target: Bundle.main.bundlePath, pid: ProcessInfo.processInfo.processIdentifier,
+                                        work: (staged as NSString).deletingLastPathComponent)]
+        guard (try? p.run()) != nil else { UserDefaults.standard.removeObject(forKey: "update.installed"); return }
         NSApp.terminate(nil)
-        return nil
+    }
+
+    /// Update now (the menu, Settings, the card): download if needed, then swap. Returns what went wrong.
+    static func install(_ r: Release, model: PixModel) async -> String? {
+        switch await prepare(r, model: model) {
+        case .success(let staged): apply(staged: staged, version: r.version); return nil
+        case .failure(let p): return p.message
+        }
+    }
+}
+
+struct UpdateProblem: Error { let message: String; init(_ m: String) { message = m } }
+
+extension PixController {
+    /// Checks daily while Pix runs (it opens at login and stays up for days), gets a new version ready in
+    /// the background, and swaps it in when Pix is idle. With automatic updates off, it says a new
+    /// version is out instead: the blob peeks out once, and the card offers Update.
+    func startUpdateWatch() {
+        let d = UserDefaults.standard
+        if let v = d.string(forKey: "update.installed") {
+            if v == Updater.current { model.justUpdated = v }
+            d.removeObject(forKey: "update.installed")
+        }
+        updateTick()
+        updateTimer = Timer.scheduledTimer(withTimeInterval: 1800, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.updateTick() }
+        }
+    }
+
+    func updateTick() {
+        Task { @MainActor in
+            let had = model.update
+            await Updater.check(model)
+            guard let r = model.update else { return }
+            guard Updater.automatic else {
+                if had == nil, !bubbleOpen { slide(.peek) { [weak self] in DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) { self?.slideHome() } } }
+                return
+            }
+            if model.updateReady == nil, !model.updating {
+                let failed = UserDefaults.standard.object(forKey: "update.failed") as? Date
+                guard failed.map({ Date().timeIntervalSince($0) > 6 * 3600 }) ?? true else { return }
+                switch await Updater.prepare(r, model: model) {
+                case .success(let staged): model.updateReady = staged
+                case .failure(let p):
+                    Log.app.error("update: \(p.message, privacy: .public)")
+                    UserDefaults.standard.set(Date(), forKey: "update.failed")
+                }
+            }
+            if let staged = model.updateReady, quietForUpdate { Updater.apply(staged: staged, version: r.version) }
+        }
+    }
+
+    /// Nobody's using Pix: nothing running, the card closed, no timer about to ring, untouched for 5 minutes.
+    var quietForUpdate: Bool {
+        guard case .idle = model.phase, !bubbleOpen, runner == nil, !model.listening else { return false }
+        return Date().timeIntervalSince(lastActivity) > 300 && model.timers.allSatisfy { $0.at.timeIntervalSinceNow > 120 }
+    }
+
+    /// The card's Update / Restart to Update.
+    func updateNow() {
+        guard let r = model.update else { return }
+        if let staged = model.updateReady { Updater.apply(staged: staged, version: r.version); return }
+        Task { @MainActor in _ = await Updater.install(r, model: model) }
     }
 }

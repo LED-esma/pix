@@ -139,7 +139,7 @@ Exactly what goes where: [PRIVACY.md](PRIVACY.md).
 4. Click the blob or press **Control-Option-Space**, and try one of the four examples on the welcome card.
 5. macOS asks for each permission the first time Pix needs it (Reminders, Calendar, Accessibility to use your apps, Screen Recording to see them, the microphone to talk). **Settings → Permissions** lists them.
 
-Pix checks for updates once a day; right-click the blob → **Update** installs one.
+Pix keeps itself up to date: new versions download in the background, are checked to be signed by the same developer, and install while Pix is idle. The card then says "Updated to Pix …" with a link to what's new. Prefer to choose? Turn off **Update Automatically** in Settings → General, and Pix tells you when a version is out.
 
 ---
 
