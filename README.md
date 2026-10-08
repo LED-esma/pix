@@ -135,8 +135,9 @@ Exactly what goes where: [PRIVACY.md](PRIVACY.md).
 
 1. Download **Pix.dmg** from [Releases](https://github.com/LED-esma/pix/releases/latest) (signed and notarized by Apple), open it, and drag Pix to Applications.
 2. Open Pix. It opens at login from now on (turn that off in Settings).
-3. Click the blob or press **Control-Option-Space**, and try one of the four examples on the welcome card.
-4. macOS asks for each permission the first time Pix needs it (Reminders, Calendar, Accessibility to use your apps, Screen Recording to see them, the microphone to talk). **Settings → Permissions** lists them.
+3. **Pick your AI.** Pix lists the AIs your Mac can use, each with what it's best at, what it costs, where your words go and how fast it is, and the best one is already picked. If you choose Claude and it isn't on your Mac yet, Pix sets it up and opens the sign-in.
+4. Click the blob or press **Control-Option-Space**, and try one of the four examples on the welcome card.
+5. macOS asks for each permission the first time Pix needs it (Reminders, Calendar, Accessibility to use your apps, Screen Recording to see them, the microphone to talk). **Settings → Permissions** lists them.
 
 Pix checks for updates once a day; right-click the blob → **Update** installs one.
 

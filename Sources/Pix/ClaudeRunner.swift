@@ -395,11 +395,15 @@ final class ClaudeRunner {
 
     /// Opens Claude's sign-in page in the browser. Falls back to a Terminal window if the
     /// sign-in needs one (it can ask to paste a code).
+    /// Straight to the Claude plan sign-in in the browser: without --claudeai, Claude Code first asks
+    /// in a Terminal menu whether it's a Claude plan or API billing, which a new user can't make sense of.
+    static let signInArguments = ["auth", "login", "--claudeai"]
+
     static func signIn() {
         guard let claude = claudeURL() else { return }
         let p = Process()
         p.executableURL = claude
-        p.arguments = ["auth", "login"]
+        p.arguments = signInArguments
         p.environment = environment()
         p.standardInput = FileHandle.nullDevice
         p.standardOutput = FileHandle.nullDevice
@@ -407,7 +411,7 @@ final class ClaudeRunner {
         p.terminationHandler = { proc in
             guard proc.terminationStatus != 0 else { return }
             let script = PixPaths.home.appendingPathComponent(".sign-in.command")
-            try? "#!/bin/zsh\n'\(claude.path)' auth login\n".write(to: script, atomically: true, encoding: .utf8)
+            try? "#!/bin/zsh\n'\(claude.path)' \(signInArguments.joined(separator: " "))\n".write(to: script, atomically: true, encoding: .utf8)
             chmod(script.path, 0o755)
             DispatchQueue.main.async { NSWorkspace.shared.open(script) }
         }

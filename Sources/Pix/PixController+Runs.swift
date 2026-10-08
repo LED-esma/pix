@@ -14,7 +14,7 @@ extension PixController {
         let r = await ClaudeRunner.readiness()
         claudeReady = r == .ready
         guard !model.adding else { return }  // adding an AI: the next check, after it's saved, decides (it once yanked the key field away)
-        if r != .ready, model.provider.isClaude, Engine.on, let free = await firstFreeAI() {
+        if r != .ready, model.provider.isClaude, Engine.on, !model.wantsClaude, let free = await firstFreeAI() {
             Log.app.notice("no Claude Code sign-in; starting on \(free.label, privacy: .public)")
             model.provider = free
         }

@@ -216,8 +216,7 @@ extension PixController {
         let d = UserDefaults.standard
         guard !d.bool(forKey: "shownWelcome"), case .idle = model.phase, !model.adding else { return }
         d.set(true, forKey: "shownWelcome")
-        model.welcome = true
-        openBubble()
+        showPickAI()  // which AI first (the welcome card follows)
     }
 
     /// Pix opens at login unless you turned that off: done once per Mac, only for the copy in

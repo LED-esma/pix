@@ -109,6 +109,22 @@ enum Main {
         if let i = argv.firstIndex(of: "--render-math"), i + 2 < argv.count {
             MainActor.assumeIsolated { Headless.renderMath(argv[i + 1], out: argv[i + 2], lines: argv.contains("lines")) }
         }
+        if let i = argv.firstIndex(of: "--render-pick"), i + 1 < argv.count {  // tests: the "Pick your AI" step, as a picture
+            MainActor.assumeIsolated {
+                _ = NSApplication.shared
+                let m = PixModel()
+                let ready = !argv.contains("signedout")
+                m.aiChoices = AIChoice.available(claudeReady: ready, claudeInstalled: !argv.contains("noclaude"), apple: AppleModel.available, local: Ollama.installed(), services: [])
+                m.aiPicked = AIChoice.preselect(m.aiChoices)?.provider
+                let r = ImageRenderer(content: SetupPreview.pick(model: m, controller: PixController()).frame(width: 340).padding(16)
+                    .background(Color(nsColor: .windowBackgroundColor)).environment(\.colorScheme, .dark))
+                r.scale = 2
+                if let img = r.nsImage, let tiff = img.tiffRepresentation, let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:]) {
+                    try? png.write(to: URL(fileURLWithPath: argv[i + 1])); print("rendered → \(argv[i + 1])")
+                }
+            }
+            exit(0)
+        }
         if let i = argv.firstIndex(of: "--render-setup"), i + 1 < argv.count {  // tests: the "needs an AI" card, as a picture
             MainActor.assumeIsolated {
                 _ = NSApplication.shared

@@ -8,7 +8,7 @@ struct BubbleView: View {
 
     /// A long answer, a table, or code gets a wider card; everything else stays compact.
     private var width: CGFloat {
-        if case .idle = model.phase, !model.adding, !model.keysHint, model.permissions || model.welcome { return 380 }  // each line and Try fit
+        if case .idle = model.phase, !model.adding, !model.keysHint, model.permissions || model.welcome || model.pickingAI { return 380 }  // each line and Try fit
         if case .idle = model.phase, model.keysHint { return 190 }
         guard case .done(let d) = model.phase else { return Self.width }
         let wide = d.gist.count > 420 || d.gist.contains("|") || d.gist.contains("```")
@@ -50,6 +50,7 @@ struct BubbleView: View {
             if model.adding { AddServiceView(model: model, controller: controller) }
             else if model.listening { ListeningView(model: model) }
             else if model.keysHint { KeysView() }
+            else if model.pickingAI { PickAIView(model: model, controller: controller) }
             else if model.welcome { WelcomeView(model: model, controller: controller) }
             else if model.permissions { PermissionsView(model: model, controller: controller) }
             else { InputView(model: model, controller: controller) }
@@ -266,6 +267,85 @@ private struct SetupView: View {
 enum SetupPreview {
     @MainActor static func card(model: PixModel, controller: PixController) -> some View {
         SetupView(model: model, controller: controller, state: .missing, waiting: false)
+    }
+    @MainActor static func pick(model: PixModel, controller: PixController) -> some View {
+        PickAIView(model: model, controller: controller)
+    }
+}
+
+/// "Pick your AI": each AI this Mac can use, with what it's best at, cost, privacy and speed; the best
+/// one is already picked, so Continue is all it takes.
+struct PickAIView: View {
+    @ObservedObject var model: PixModel
+    let controller: PixController
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Hi, I'm Pix. Pick your AI.").font(.system(size: 17, weight: .semibold))
+            VStack(spacing: 6) {
+                ForEach(model.aiChoices) { c in
+                    AIChoiceRow(choice: c, picked: model.aiPicked == c.provider) { model.aiPicked = c.provider }
+                }
+            }
+            HStack {
+                Spacer()
+                Button(model.aiPicked.map { p in model.aiChoices.first { $0.provider == p }.map { $0.ready ? "Continue" : ($0.provider.isClaude ? "Set Up Claude" : "Continue") } ?? "Continue" } ?? "Continue") {
+                    controller.confirmPickAI()
+                }
+                .buttonStyle(.borderedProminent)
+                .keyboardShortcut(.defaultAction)
+                .disabled(model.aiPicked == nil)
+            }
+        }
+    }
+}
+
+private struct AIChoiceRow: View {
+    let choice: AIChoice
+    let picked: Bool
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: picked ? "largecircle.fill.circle" : "circle")
+                    .font(.system(size: 15)).foregroundStyle(picked ? Color.accentColor : Color.secondary)
+                    .padding(.top, 1)
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 6) {
+                        Text(choice.title).font(.system(size: 13.5, weight: .semibold))
+                        if let badge = choice.badge { Text(badge).font(.system(size: 10.5, weight: .medium)).foregroundStyle(.secondary)
+                            .padding(.horizontal, 6).padding(.vertical, 1).background(Capsule().fill(Color.primary.opacity(0.08))) }
+                    }
+                    Text(choice.bestAt).font(.system(size: 12)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    // One line when it fits, stacked when it doesn't (never cut off).
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: 10) { facts }
+                        VStack(alignment: .leading, spacing: 2) { facts }
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(10)
+            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(picked ? Color.accentColor.opacity(0.14) : Color.primary.opacity(0.05)))
+            .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(picked ? Color.accentColor.opacity(0.7) : .clear, lineWidth: 1.5))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(choice.title): \(choice.bestAt). \(choice.cost), \(choice.privacy), \(choice.speed)")
+        .accessibilityAddTraits(picked ? .isSelected : [])
+    }
+
+    @ViewBuilder private var facts: some View {
+        Fact(symbol: "dollarsign.circle", text: choice.cost)
+        Fact(symbol: choice.privacy.hasPrefix("Stays") ? "lock" : "arrow.up.right", text: choice.privacy)
+        Fact(symbol: "bolt", text: choice.speed)
+    }
+
+    private struct Fact: View {
+        let symbol: String, text: String
+        var body: some View {
+            Label(text, systemImage: symbol).font(.system(size: 10.5)).foregroundStyle(.secondary).labelStyle(.titleAndIcon).lineLimit(1).fixedSize()
+        }
     }
 }
 

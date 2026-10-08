@@ -220,6 +220,10 @@ final class PixModel: ObservableObject {
     @Published var cameFrom: TryOrigin?
     /// The welcome card on a new Mac, the name typed into it, and the one-time "here's how to call Pix" keys.
     @Published var welcome = false
+    @Published var pickingAI = false            // the first-run "Pick your AI" step
+    @Published var aiChoices: [AIChoice] = []
+    @Published var aiPicked: Provider?
+    var wantsClaude = false                     // picked Claude before it was set up: don't switch to a free AI meanwhile
     @Published var nameDraft = Welcome.name
     @Published var keysHint = false
     /// How Pix hides (see HideStyle), which bezel it's on, whether it's tucked in now (and since when,

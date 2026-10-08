@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- **Pick your AI** on first open: every AI your Mac can use, each with what it's best at, cost, where your words go and speed. Claude is picked when you're signed in, otherwise the free built-in AI.
+- Picking Claude when it isn't installed: Pix installs Claude Code, then opens the Claude plan sign-in in your browser (no Terminal menu).
+- The card's AI menu uses the same plain words ("Claude — best at doing things, uses your plan").
+
 ## 0.1.0 (2026-10-07): first public release
 
 The first open-source release of Pix.

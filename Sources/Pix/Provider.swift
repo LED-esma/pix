@@ -101,7 +101,7 @@ enum Provider: Equatable {
     /// The provider menu's own words for each option.
     var menuLabel: String {
         switch self {
-        case .claude: return "Claude — your account"
+        case .claude: return "Claude — best at doing things, uses your plan"
         case .local(let m): return m == AppleModel.id ? "Built-in — free and private, nothing to set up" : "This Mac — \(m), free and private"
         case .gateway: return "\(short) — free models"
         case .cloud(let m): return "Ollama Cloud — \(Ollama.shortName(m)), free tier"

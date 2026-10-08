@@ -952,6 +952,18 @@ enum SelfCheck {
               FreeAI.localModel(memory: 24 * 1_073_741_824).name == "qwen3:8b" && FreeAI.localModel(memory: 8 * 1_073_741_824).name == "qwen3:4b"
               && FreeAI.pullProgress(#"{"status":"pulling abc","total":200,"completed":50}"#)?.fraction == 0.25
               && FreeAI.pullProgress(#"{"status":"success"}"#)?.text == "Ready" && FreeAI.pullProgress(#"{"error":"no space"}"#)?.text == "Error: no space")
+        do {
+            let all = AIChoice.available(claudeReady: true, apple: true, local: ["apple", "qwen3:8b"], services: [.service(id: "gemini", model: "g")])
+            let noClaude = AIChoice.available(claudeReady: false, apple: true, local: [], services: [])
+            check("Pick your AI lists what this Mac can use in plain words, Claude first when signed in, else the free built-in",
+                  all.map(\.title) == ["Claude", "Built-in", "This Mac · qwen3:8b", "Google Gemini"]
+                  && AIChoice.preselect(all)?.provider == .claude && AIChoice.preselect(noClaude)?.provider == .local(model: AppleModel.id)
+                  && noClaude.first?.ready == false && noClaude.first?.badge == "Needs sign-in" && all.first?.badge == nil
+                  && AIChoice.available(claudeReady: false, claudeInstalled: false, apple: false, local: [], services: []).first?.badge == "Pix sets it up"
+                  && ClaudeRunner.signInArguments == ["auth", "login", "--claudeai"]
+                  && all.allSatisfy { !$0.cost.isEmpty && !$0.privacy.isEmpty && !$0.speed.isEmpty && !$0.bestAt.isEmpty }
+                  && all[1].privacy == "Stays on this Mac" && all[0].privacy == "Sent to Anthropic")
+        }
         check("Auto sends doing to Claude and keeps quick questions local",
               Auto.needsDoer("turn on dark mode for me") && Auto.needsDoer("remind me to call mom at 6") && !Auto.needsDoer("what is a derivative"))
         check("a model can save a tool only when the user asked for one",
